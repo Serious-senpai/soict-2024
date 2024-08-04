@@ -1,5 +1,7 @@
-#Customer 500
-x	y	technician
+number_staff 10
+number_drone 10
+Customers 500
+Coordinate X		 Coordinate Y 		Demand		OnlyServicedByStaff		 ServiceTimeByTruck(s)		 ServiceTimeByDrone(s)
 7.304410809046649	-7.734870232435959	0 0 0 0
 8.67374377090133	-6.109495985404328	0 0 0 0
 7.151241116008828	-6.5188777786869405	0 0 0 0
