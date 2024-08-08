@@ -25,7 +25,7 @@ if __name__ == "__main__":
     cost = float(input())
     capacity_violation = float(input())
     drone_energy_violation = float(input())
-    waiting_time_violation = float(input())
+    working_time_violation = float(input())
     fixed_time_violation = float(input())
     fixed_distance_violation = float(input())
 
@@ -76,7 +76,7 @@ if __name__ == "__main__":
         "cost": cost,
         "capacity_violation": capacity_violation,
         "drone_energy_violation": drone_energy_violation,
-        "waiting_time_violation": waiting_time_violation,
+        "working_time_violation": working_time_violation,
         "fixed_time_violation": fixed_time_violation,
         "fixed_distance_violation": fixed_distance_violation,
         "truck_paths": truck_paths,
