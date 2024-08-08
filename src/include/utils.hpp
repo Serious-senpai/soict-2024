@@ -77,32 +77,32 @@ namespace utils
         return low;
     }
 
-    template <typename T>
-    T distance(const T &dx, const T &dy)
-    {
-        return sqrt(pow2(dx) + pow2(dy));
-    }
-
     template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, bool> = true>
     T abs(const T &value)
     {
         return value > 0 ? value : -value;
     }
 
-    template <typename T>
+    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, bool> = true>
+    T man_distance(const T &dx, const T &dy)
+    {
+        return abs(dx) + abs(dy);
+    }
+
+    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, bool> = true>
+    T euc_distance(const T &dx, const T &dy)
+    {
+        return sqrt(pow2(dx) + pow2(dy));
+    }
+
+    template <typename T, std::enable_if_t<std::negation_v<std::is_floating_point<T>>, bool> = true>
     bool approximate(const T &first, const T &second)
     {
         return first == second;
     }
 
-    template <>
-    bool approximate(const double &first, const double &second)
-    {
-        return abs(first - second) < 1.0e-6;
-    }
-
-    template <>
-    bool approximate(const float &first, const float &second)
+    template <typename T1, typename T2, std::enable_if_t<std::conjunction_v<std::is_floating_point<T1>, std::is_floating_point<T2>>, bool> = true>
+    bool approximate(const T1 &first, const T2 &second)
     {
         return abs(first - second) < 1.0e-6;
     }
