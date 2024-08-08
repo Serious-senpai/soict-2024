@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import sys
-from typing import Tuple, Union
 
 from package import parser, DroneEnduranceConfig, DroneLinearConfig, DroneNonlinearConfig, Namespace, Problem, TruckConfig
 
