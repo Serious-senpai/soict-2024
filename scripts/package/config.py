@@ -6,6 +6,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, Final, List, Literal, Tuple
 
+from .utils import euc_distance
+
 
 __all__ = ("ROOT", "TruckConfig", "DroneLinearConfig", "DroneNonlinearConfig", "DroneEnduranceConfig", "Problem")
 ROOT: Final[Path] = Path(__file__).parent.parent.parent
@@ -213,7 +215,7 @@ class Problem:
             x.append(float(_x))
             y.append(float(_y))
             demands.append(float(demand))
-            dronable.append(demands[-1] <= drone_capacity)
+            dronable.append(demands[-1] <= drone_capacity and 2 * euc_distance(x[-1] - x[0], y[-1] - y[0]) <= drone_speed * drone_endurance)
 
         return Problem(
             problem=problem,
