@@ -24,7 +24,7 @@ jobs:
         run: scripts/build.sh profile-generate
 
       - name: Run in profile mode
-        run: python scripts/in.py 30-rc-2-r | time -p build/main.exe
+        run: python scripts/in.py 50-rc-2-r | time -p build/main.exe
 
       - name: Compile in release mode
         run: scripts/build.sh profile-use
@@ -35,8 +35,8 @@ jobs:
           name: executable
           path: build/main.exe
 
-  solve:
-    name: Run algorithm
+  solve-30:
+    name: Run algorithm (30-customer set)
     runs-on: ubuntu-latest
     needs: build
     strategy:
@@ -97,11 +97,135 @@ jobs:
           name: solution-${{ matrix.problem }}-${{ matrix.steps }}
           path: result/*
 
+  solve-50:
+    name: Run algorithm (50-customer set)
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        problem: ["50-c-0-c", "50-c-0-e", "50-c-0-r", "50-c-1-c", "50-c-1-e", "50-c-1-r", "50-c-2-c", "50-c-2-e", "50-c-2-r",
+          "50-r-0-c", "50-r-0-e", "50-r-0-r", "50-r-1-c", "50-r-1-e", "50-r-1-r", "50-r-2-c", "50-r-2-e", "50-r-2-r",
+          "50-rc-0-c", "50-rc-0-e", "50-rc-0-r", "50-rc-1-c", "50-rc-1-e", "50-rc-1-r", "50-rc-2-c", "50-rc-2-e", "50-rc-2-r"]
+        steps: [0, 1]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Download executable
+        uses: actions/download-artifact@v4
+        with:
+          name: executable
+          path: build/
+
+      - name: Initialize working space
+        run: |
+          mkdir result
+          chmod +x build/main.exe
+
+      - name: Run algorithm
+        run: |
+          exitcode=0
+          set +e
+          let begin=5*${{ matrix.steps }}+1
+          let end=$begin+4
+          for i in $(seq $begin $end)
+          do
+            echo "RUN #$i"
+            out=$(python scripts/in.py ${{ matrix.problem }}) && echo "$out" | time -po /dev/stdout build/main.exe | python scripts/out.py ${{ matrix.problem }}
+            this_exitcode=$?
+
+            if [ $this_exitcode -ne 0 ]
+            then
+              echo "::warning::Exit code $this_exitcode at run #$i"
+              exitcode=1
+            fi
+          done
+
+          exit $exitcode
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: solution-${{ matrix.problem }}-${{ matrix.steps }}
+          path: result/*
+
+  solve-100:
+    name: Run algorithm (100-customer set)
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        problem: ["100-c-0-c", "100-c-0-e", "100-c-0-r", "100-c-1-c", "100-c-1-e", "100-c-1-r", "100-c-2-c", "100-c-2-e", "100-c-2-r",
+          "100-r-0-c", "100-r-0-e", "100-r-0-r", "100-r-1-c", "100-r-1-e", "100-r-1-r", "100-r-2-c", "100-r-2-e", "100-r-2-r",
+          "100-rc-0-c", "100-rc-0-e", "100-rc-0-r", "100-rc-1-c", "100-rc-1-e", "100-rc-1-r", "100-rc-2-c", "100-rc-2-e", "100-rc-2-r"]
+        steps: [0, 1]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Download executable
+        uses: actions/download-artifact@v4
+        with:
+          name: executable
+          path: build/
+
+      - name: Initialize working space
+        run: |
+          mkdir result
+          chmod +x build/main.exe
+
+      - name: Run algorithm
+        run: |
+          exitcode=0
+          set +e
+          let begin=5*${{ matrix.steps }}+1
+          let end=$begin+4
+          for i in $(seq $begin $end)
+          do
+            echo "RUN #$i"
+            out=$(python scripts/in.py ${{ matrix.problem }}) && echo "$out" | time -po /dev/stdout build/main.exe | python scripts/out.py ${{ matrix.problem }}
+            this_exitcode=$?
+
+            if [ $this_exitcode -ne 0 ]
+            then
+              echo "::warning::Exit code $this_exitcode at run #$i"
+              exitcode=1
+            fi
+          done
+
+          exit $exitcode
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: solution-${{ matrix.problem }}-${{ matrix.steps }}
+          path: result/*
+
   summary:
     name: Summarize results
     runs-on: ubuntu-latest
     if: ${{ always() }}
-    needs: solve
+    needs: [solve-30, solve-50, solve-100]
 
     steps:
       - name: Checkout repository
