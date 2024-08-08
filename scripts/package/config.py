@@ -187,8 +187,8 @@ class Problem:
 
         customers_count = int(problem.split("-")[0])
 
-        trucks_count = int(re.search(r"NUM DRONES,(\d+)", data).group(1))  # type: ignore
-        drones_count = int(re.search(r"NUM TRUCKS,(\d+)", data).group(1))  # type: ignore
+        trucks_count = int(re.search(r"NUM TRUCKS,(\d+)", data).group(1))  # type: ignore
+        drones_count = int(re.search(r"NUM DRONES,(\d+)", data).group(1))  # type: ignore
 
         truck_capacity = float(re.search(r"TRUCK CAP,(\d+(?:\.\d+)?)", data).group(1))  # type: ignore
         drone_capacity = float(re.search(r"DRONE CAP,(\d+(?:\.\d+)?)", data).group(1))  # type: ignore
