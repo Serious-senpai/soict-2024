@@ -289,41 +289,7 @@ namespace d2d
         const std::vector<std::vector<std::vector<double>>> &truck_time_segments,
         const std::vector<std::vector<DroneRoute>> &drone_routes)
     {
-        double result = 0;
-        auto problem = Problem::get_instance();
-
-        for (std::size_t i = 0; i < truck_routes.size(); i++)
-        {
-            for (std::size_t j = 0; j < truck_routes[i].size(); j++)
-            {
-                auto waiting_time_violations = TruckRoute::calculate_waiting_time_violations(
-                    truck_routes[i][j].customers(),
-                    truck_time_segments[i][j]);
-                result += std::accumulate(
-                    waiting_time_violations.begin(), waiting_time_violations.end(),
-                    0.0,
-                    [&problem](const double &result, const double &violation)
-                    {
-                        return result + violation / problem->maximum_waiting_time;
-                    });
-            }
-        }
-        for (auto &routes : drone_routes)
-        {
-            for (auto &route : routes)
-            {
-                const std::vector<double> &waiting_time_violations = route.waiting_time_violations();
-                result += std::accumulate(
-                    waiting_time_violations.begin(), waiting_time_violations.end(),
-                    0.0,
-                    [&problem](const double &result, const double &violation)
-                    {
-                        return result + violation / problem->maximum_waiting_time;
-                    });
-            }
-        }
-
-        return result;
+        return 0;
     }
 
     double Solution::_calculate_fixed_time_violation(const std::vector<std::vector<DroneRoute>> &drone_routes)

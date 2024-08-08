@@ -86,7 +86,6 @@ namespace d2d
         const std::size_t trucks_count, drones_count;
         const std::vector<Customer> customers;
         const std::vector<std::vector<double>> man_distances, euc_distances;
-        const double maximum_waiting_time = 10e9; // hard-coded value
         const double truck_time_limit;
         const double drone_time_limit;
         const double truck_unit_cost;

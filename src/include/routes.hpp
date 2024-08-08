@@ -124,19 +124,7 @@ namespace d2d
         const std::vector<double> &time_segments,
         const std::function<double(const std::size_t &)> service_time)
     {
-        auto problem = Problem::get_instance();
-        std::vector<double> violations(customers.size());
-
-        double time = std::accumulate(time_segments.begin(), time_segments.end(), 0.0);
-        for (std::size_t i = 0; i < customers.size(); i++)
-        {
-            violations[i] = std::max(0.0, time - service_time(customers[i]) - problem->maximum_waiting_time);
-            time -= time_segments[i];
-        }
-
-        violations.front() = violations.back() = 0;
-
-        return violations;
+        return std::vector<double>(customers.size());
     }
 
     /** @brief Represents a truck route. */
