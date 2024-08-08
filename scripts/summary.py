@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import json
-from typing import Any, List
+import re
+from typing import Any, Dict, List
 
 from package import SolutionJSON, ROOT
 
@@ -22,12 +23,17 @@ if __name__ == "__main__":
             solution = SolutionJSON(**data)  # type: ignore  # will throw at runtime if fields are incompatible
             solutions.append(solution)
 
+    compare: Dict[str, float] = {}
+    with ROOT.joinpath("problems", "[11]", "bestfoundsolutions-mincost.txt").open("r") as f:
+        for match in re.finditer(r"^(\d+-\w+-[012]-\w+)\.txt\s+Cost\s+=\s+(\d+(?:\.\d+)?)$", f.read(), re.MULTILINE):
+            compare[match.group(1)] = float(match.group(2))
+
     with ROOT.joinpath("result", "summary.csv").open("w") as csv:
-        csv.write("Problem,Customers count,Trucks count,Drones count,Iterations,Tabu size,Energy model,Speed type,Range type,Cost,Capacity violation,Energy violation,Waiting time violation,Fixed time violation,Fixed distance violation,Truck paths,Drone paths,Feasible,Last improved,real,user,sys\n")
+        csv.write("Problem,Customers count,Trucks count,Drones count,Iterations,Tabu size,Energy model,Speed type,Range type,Cost,[11],Improved [%],Capacity violation,Energy violation,Waiting time violation,Fixed time violation,Fixed distance violation,Truck paths,Drone paths,Feasible,Last improved,real,user,sys\n")
         for row, solution in enumerate(solutions, start=2):
             segments = [
                 wrap(solution["problem"]),
-                wrap(f"=VALUE(LEFT(A{row}, SEARCH(\"\".\"\", A{row}) - 1))"),
+                wrap(f"=VALUE(LEFT(A{row}, SEARCH(\"\"-\"\", A{row}) - 1))"),
                 str(solution["trucks_count"]),
                 str(solution["drones_count"]),
                 str(solution["iterations"]),
@@ -36,6 +42,8 @@ if __name__ == "__main__":
                 solution["speed_type"],
                 solution["range_type"],
                 str(solution["cost"]),
+                str(compare.get(solution["problem"], "")),
+                wrap(f"=ROUND(100 * (K{row} - J{row}) / K{row}, 2)"),
                 str(solution["capacity_violation"]),
                 str(solution["drone_energy_violation"]),
                 str(solution["working_time_violation"]),
