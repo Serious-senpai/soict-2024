@@ -36,7 +36,7 @@ jobs:
           path: build/main.exe
 
   solve-30:
-    name: Run algorithm (30-customer set)
+    name: Solve 30-customer instances
     runs-on: ubuntu-latest
     needs: build
     strategy:
@@ -98,7 +98,7 @@ jobs:
           path: result/*
 
   solve-50:
-    name: Run algorithm (50-customer set)
+    name: Solve 50-customer instances
     runs-on: ubuntu-latest
     needs: build
     strategy:
@@ -160,7 +160,7 @@ jobs:
           path: result/*
 
   solve-100:
-    name: Run algorithm (100-customer set)
+    name: Solve 100-customer instances
     runs-on: ubuntu-latest
     needs: build
     strategy:
