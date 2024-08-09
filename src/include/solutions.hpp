@@ -155,7 +155,7 @@ namespace d2d
     double Solution::A3 = 1;
     double Solution::A4 = 1;
     double Solution::A5 = 1;
-    double Solution::B = 0.5;
+    double Solution::B = 1.5;
 
     const std::vector<std::shared_ptr<Neighborhood<Solution>>> Solution::neighborhoods = {
         std::make_shared<MoveXY<Solution, 2, 0>>(),
@@ -191,16 +191,16 @@ namespace d2d
         std::vector<std::vector<std::vector<double>>> result(truck_routes.size());
         for (std::size_t i = 0; i < truck_routes.size(); i++)
         {
-            result[i].resize(truck_routes[i].size());
+            result[i].reserve(truck_routes[i].size());
 
             std::size_t coefficients_index = 0;
             double current_within_timespan = 0;
             for (std::size_t j = 0; j < truck_routes[i].size(); j++)
             {
-                result[i][j] = TruckRoute::calculate_time_segments(
+                result[i].push_back(TruckRoute::calculate_time_segments(
                     truck_routes[i][j].customers(),
                     coefficients_index,
-                    current_within_timespan);
+                    current_within_timespan));
             }
         }
 
@@ -397,7 +397,7 @@ namespace d2d
             *last_improved_ptr = 0;
         }
 
-        std::size_t neighborhood = 0;
+        std::size_t neighborhood = utils::random<std::size_t>(0, neighborhoods.size() - 1);
         for (std::size_t iteration = 0; iteration < problem->iterations; iteration++)
         {
             if (problem->verbose)
@@ -451,59 +451,55 @@ namespace d2d
             if (neighbor == nullptr || current_cost <= current->cost())
             {
                 neighborhood = (neighborhood + 1) % neighborhoods.size();
-                if (neighborhood == 0)
-                {
-                    auto neighbor = utils::random_element(neighborhoods)->move(current, aspiration_criteria);
-                    if (neighbor != nullptr)
-                    {
-                        current = neighbor;
-                    }
-                }
+            }
+            else
+            {
+                neighborhood = utils::random<std::size_t>(0, neighborhoods.size() - 1);
             }
 
             if (current->drone_energy_violation > 0)
             {
-                Solution::A1 *= 1.0 + B;
+                A1 *= B;
             }
             else
             {
-                Solution::A1 /= 1.0 + B;
+                A1 /= B;
             }
 
             if (current->capacity_violation > 0)
             {
-                Solution::A2 *= 1.0 + B;
+                A2 *= B;
             }
             else
             {
-                Solution::A2 /= 1.0 + B;
+                A2 /= B;
             }
 
             if (current->waiting_time_violation > 0)
             {
-                Solution::A3 *= 1.0 + B;
+                A3 *= B;
             }
             else
             {
-                Solution::A3 /= 1.0 + B;
+                A3 /= B;
             }
 
             if (current->fixed_time_violation > 0)
             {
-                Solution::A4 *= 1.0 + B;
+                A4 *= B;
             }
             else
             {
-                Solution::A4 /= 1.0 + B;
+                A4 /= B;
             }
 
             if (current->fixed_distance_violation > 0)
             {
-                Solution::A5 *= 1.0 + B;
+                A5 *= B;
             }
             else
             {
-                Solution::A5 /= 1.0 + B;
+                A5 /= B;
             }
         }
 
