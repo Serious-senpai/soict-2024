@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing_extensions import Generic, List, Tuple, TypedDict, TypeVar
+from typing_extensions import Dict, Generic, List, Tuple, TypedDict, TypeVar
 
 
 __all__ = (
@@ -11,6 +11,7 @@ __all__ = (
     "HistoryJSON",
     "ProgressJSON",
     "ResultJSON",
+    "MILPResultJSON",
     "prettify"
 )
 
@@ -79,6 +80,23 @@ class ResultJSON(Generic[T], TypedDict):
     real: float
     user: float
     sys: float
+
+
+class MILPResultJSON(TypedDict):
+    x: Dict[str, float]
+    y: Dict[str, float]
+    L_w: float
+    L_d: float
+    staff_velocity: float
+    drone_velocity: float
+    num_staff: int
+    num_drone: int
+    use_ejection: bool
+    use_inter: bool
+    use_intra: bool
+    Optimal: float
+    Solve_Time: float
+    status: str
 
 
 def prettify(solution: SolutionJSON) -> PrettySolutionJSON:

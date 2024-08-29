@@ -1,9 +1,24 @@
 from __future__ import annotations
 
 import json
-from typing_extensions import List
+import re
+from typing_extensions import Dict, List
 
-from package import ResultJSON, SolutionJSON, ROOT, csv_wrap
+from package import MILPResultJSON, ResultJSON, SolutionJSON, ROOT, csv_wrap
+
+
+def compare() -> Dict[str, MILPResultJSON]:
+    result: Dict[str, MILPResultJSON] = {}
+    for file in ROOT.joinpath("problems", "milp").iterdir():
+        match = re.search(r"\d+\.\d+\.\d+", file.name)
+        if file.is_file() and file.name.endswith(".json") and match is not None:
+            problem = match.group()
+            with file.open("r") as f:
+                data = json.load(f)
+
+            result[problem] = MILPResultJSON(**data)  # type: ignore  # will throw at runtime if fields are incompatible
+
+    return result
 
 
 if __name__ == "__main__":
@@ -19,10 +34,13 @@ if __name__ == "__main__":
             result = ResultJSON[SolutionJSON](**data)  # type: ignore  # will throw at runtime if fields are incompatible
             results.append(result)
 
+    milp = compare()
+
     with ROOT.joinpath("result", "summary.csv").open("w") as csv:
         csv.write("sep=,\n")
-        csv.write("Problem,Customers count,Trucks count,Drones count,Iterations,Tabu size,Energy model,Speed type,Range type,Cost,Capacity violation,Energy violation,Waiting time violation,Fixed time violation,Fixed distance violation,Truck paths,Drone paths,Feasible,Initialization,Last improved,real,user,sys\n")
+        csv.write("Problem,Customers count,Trucks count,Drones count,Iterations,Tabu size,Energy model,Speed type,Range type,Cost,MILP cost,Improved [%],MILP performance,MILP status,Capacity violation,Energy violation,Waiting time violation,Fixed time violation,Fixed distance violation,Truck paths,Drone paths,Feasible,Initialization,Last improved,real,user,sys\n")
         for row, result in enumerate(results, start=2):
+            milp_available = result["problem"] in milp
             segments = [
                 csv_wrap(result["problem"]),
                 csv_wrap(f"=VALUE(LEFT(A{row}, SEARCH(\"\".\"\", A{row}) - 1))"),
@@ -34,6 +52,10 @@ if __name__ == "__main__":
                 result["speed_type"],
                 result["range_type"],
                 str(result["solution"]["cost"]),
+                str(60 * milp[result["problem"]]["Optimal"]) if milp_available else "",
+                csv_wrap(f"=ROUND(100 * (K{row} - J{row}) / K{row}, 2)"),
+                str(milp[result["problem"]]["Solve_Time"]) if milp_available else "",
+                str(milp[result["problem"]]["status"]) if milp_available else "",
                 str(result["solution"]["capacity_violation"]),
                 str(result["solution"]["drone_energy_violation"]),
                 str(result["solution"]["waiting_time_violation"]),
