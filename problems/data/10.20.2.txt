@@ -1,5 +1,5 @@
-number_staff 2
-number_drone 2
+number_staff 1
+number_drone 1
 droneLimitationFightTime(s) 3600
 Customers 10 
 Coordinate X		 Coordinate Y 		Demand		OnlyServicedByStaff		 ServiceTimeByTruck(s)		 ServiceTimeByDrone(s)
