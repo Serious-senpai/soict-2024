@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing_extensions import Dict, Generic, List, Tuple, TypedDict, TypeVar
+from typing_extensions import Dict, Generic, List, Optional, Tuple, TypedDict, TypeVar, overload
 
 
 __all__ = (
@@ -8,8 +8,6 @@ __all__ = (
     "PrettySolutionJSON",
     "PropagationJSON",
     "NeighborhoodJSON",
-    "HistoryJSON",
-    "ProgressJSON",
     "ResultJSON",
     "MILPResultJSON",
     "prettify"
@@ -41,19 +39,8 @@ class PrettySolutionJSON(_BaseSolutionJSON):
 
 
 class PropagationJSON(Generic[T], TypedDict):
-    solution: T
+    solution: Optional[T]
     label: str
-
-
-class HistoryJSON(Generic[T], TypedDict):
-    solution: T
-    iteration: int
-    penalty_coefficients: List[float]
-
-
-class ProgressJSON(Generic[T], TypedDict):
-    solution: T
-    penalty_coefficients: List[float]
 
 
 class NeighborhoodJSON(TypedDict):
@@ -72,13 +59,13 @@ class ResultJSON(Generic[T], TypedDict):
     range_type: str
     solution: T
     propagation: List[PropagationJSON[T]]
-    history: List[HistoryJSON[T]]
-    progress: List[ProgressJSON[T]]
+    history: List[Optional[T]]
+    progress: List[Optional[T]]
+    coefficients: List[List[float]]
     neighborhoods: List[NeighborhoodJSON]
     initialization_label: str
     last_improved: int
     elite_set: List[List[float]]
-    elite_set_extraction: List[int]
     real: float
     user: float
     sys: float
@@ -101,7 +88,16 @@ class MILPResultJSON(TypedDict):
     status: str
 
 
-def prettify(solution: SolutionJSON) -> PrettySolutionJSON:
+@overload
+def prettify(solution: SolutionJSON) -> PrettySolutionJSON: ...
+@overload
+def prettify(solution: None) -> None: ...
+
+
+def prettify(solution: Optional[SolutionJSON]) -> Optional[PrettySolutionJSON]:
+    if solution is None:
+        return None
+
     return {
         **solution,
         "truck_paths": str(solution["truck_paths"]),
