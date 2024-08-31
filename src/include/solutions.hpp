@@ -285,7 +285,7 @@ namespace d2d
 
                     logger.log(
                         result,
-                        nullptr,
+                        result,
                         {},
                         std::make_pair(
                             neighborhood->label() + "/post-optimization/inter-route",
@@ -315,7 +315,7 @@ namespace d2d
 
                     logger.log(
                         result,
-                        nullptr,
+                        result,
                         {},
                         std::make_pair(
                             neighborhood->label() + "/post-optimization/intra-route",
@@ -641,7 +641,7 @@ namespace d2d
             {
                 if (ptr->feasible && ptr->cost() < result->cost())
                 {
-                    result = ptr;
+                    result = ptr->post_optimization(logger);
                     logger.last_improved = iteration;
                     insert_elite();
                     return true;
@@ -652,7 +652,11 @@ namespace d2d
 
             auto neighbor = neighborhoods[neighborhood]->move(current, aspiration_criteria); // result is updated by aspiration_criteria
             auto current_cost = current->cost();
-            if (neighbor != nullptr)
+            if (logger.last_improved == iteration)
+            {
+                current = result;
+            }
+            else if (neighbor != nullptr)
             {
                 current = neighbor;
             }
