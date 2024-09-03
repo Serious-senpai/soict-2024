@@ -21,7 +21,6 @@ class _BaseSolutionJSON(TypedDict):
     capacity_violation: float
     waiting_time_violation: float
     fixed_time_violation: float
-    fixed_distance_violation: float
     feasible: bool
 
 
