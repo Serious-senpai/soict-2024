@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing_extensions import Dict, List
+from typing_extensions import Dict, Iterable
 
 from package import MILPResultJSON, ResultJSON, SolutionJSON, ROOT, csv_wrap
 
@@ -21,10 +21,7 @@ def compare() -> Dict[str, MILPResultJSON]:
     return result
 
 
-if __name__ == "__main__":
-    ROOT.joinpath("result", "summary.json").unlink(missing_ok=True)
-
-    results: List[ResultJSON[SolutionJSON]] = []
+def result_reader() -> Iterable[ResultJSON[SolutionJSON]]:
     for file in sorted(ROOT.joinpath("result").iterdir(), key=lambda f: f.name):
         if file.is_file() and file.name.endswith(".json") and not file.name.endswith("-pretty.json"):
             print(file.absolute())
@@ -32,14 +29,16 @@ if __name__ == "__main__":
                 data = json.load(f)
 
             result = ResultJSON[SolutionJSON](**data)  # type: ignore  # will throw at runtime if fields are incompatible
-            results.append(result)
+            yield result
 
+
+if __name__ == "__main__":
     milp = compare()
 
     with ROOT.joinpath("result", "summary.csv").open("w") as csv:
         csv.write("sep=,\n")
         csv.write("Problem,Customers count,Trucks count,Drones count,Iterations,Tabu size,Energy model,Speed type,Range type,Cost,MILP cost,Improved [%],MILP performance,MILP status,Capacity violation,Energy violation,Waiting time violation,Fixed time violation,Fixed distance violation,Truck paths,Drone paths,Feasible,Initialization,Last improved,real,user,sys\n")
-        for row, result in enumerate(results, start=2):
+        for row, result in enumerate(result_reader(), start=2):
             milp_available = result["problem"] in milp
             segments = [
                 csv_wrap(result["problem"]),
@@ -71,6 +70,3 @@ if __name__ == "__main__":
                 str(result["sys"]),
             ]
             csv.write(",".join(segments) + "\n")
-
-    with ROOT.joinpath("result", "summary.json").open("w") as f:
-        json.dump(results, f, indent=4)
