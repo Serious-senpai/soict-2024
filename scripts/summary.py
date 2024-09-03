@@ -14,9 +14,7 @@ def compare() -> Dict[str, MILPResultJSON]:
         if file.is_file() and file.name.endswith(".json") and match is not None:
             problem = match.group()
             with file.open("r") as f:
-                data = json.load(f)
-
-            result[problem] = MILPResultJSON(**data)  # type: ignore  # will throw at runtime if fields are incompatible
+                result[problem] = json.load(f)
 
     return result
 
@@ -28,8 +26,7 @@ def result_reader() -> Iterable[ResultJSON[SolutionJSON]]:
             with file.open("r") as f:
                 data = json.load(f)
 
-            result = ResultJSON[SolutionJSON](**data)  # type: ignore  # will throw at runtime if fields are incompatible
-            yield result
+            yield data
 
 
 if __name__ == "__main__":
@@ -40,6 +37,7 @@ if __name__ == "__main__":
         csv.write("Problem,Customers count,Trucks count,Drones count,Iterations,Tabu size,Energy model,Speed type,Range type,Cost,MILP cost,Improved [%],MILP performance,MILP status,Capacity violation,Energy violation,Waiting time violation,Fixed time violation,Truck paths,Drone paths,Feasible,Initialization,Last improved,real,user,sys\n")
         for row, result in enumerate(result_reader(), start=2):
             milp_available = result["problem"] in milp
+            milp_feasible = milp_available and milp[result["problem"]]["status"] != "INFEASIBLE"
             segments = [
                 csv_wrap(result["problem"]),
                 csv_wrap(f"=VALUE(LEFT(A{row}, SEARCH(\"\".\"\", A{row}) - 1))"),
@@ -51,9 +49,9 @@ if __name__ == "__main__":
                 result["speed_type"],
                 result["range_type"],
                 str(result["solution"]["cost"]),
-                str(60 * milp[result["problem"]]["Optimal"]) if milp_available else "",
-                csv_wrap(f"=ROUND(100 * (K{row} - J{row}) / K{row}, 2)"),
-                str(milp[result["problem"]]["Solve_Time"]) if milp_available else "",
+                str(milp[result["problem"]]["Optimal"]) if milp_feasible else "",  # type: ignore
+                csv_wrap(f"=ROUND(100 * (K{row} - J{row}) / K{row}, 2)") if milp_feasible else "",
+                str(milp[result["problem"]]["Solve_Time"]) if milp_feasible else "",  # type: ignore
                 str(milp[result["problem"]]["status"]) if milp_available else "",
                 str(result["solution"]["capacity_violation"]),
                 str(result["solution"]["drone_energy_violation"]),

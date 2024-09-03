@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing_extensions import Dict, Generic, List, Optional, Tuple, TypedDict, TypeVar, overload
+from typing_extensions import Dict, Generic, List, Literal, Optional, Tuple, TypedDict, TypeVar, Union, overload
 
 
 __all__ = (
@@ -70,7 +70,7 @@ class ResultJSON(Generic[T], TypedDict):
     sys: float
 
 
-class MILPResultJSON(TypedDict):
+class _FeasibleMILPResultJSON(TypedDict):
     x: Dict[str, float]
     y: Dict[str, float]
     L_w: float
@@ -85,6 +85,13 @@ class MILPResultJSON(TypedDict):
     Optimal: float
     Solve_Time: float
     status: str
+
+
+class _InfeasibleMILPResultJSON(TypedDict):
+    status: Literal["INFEASIBLE"]
+
+
+MILPResultJSON = Union[_FeasibleMILPResultJSON, _InfeasibleMILPResultJSON]
 
 
 @overload

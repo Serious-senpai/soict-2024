@@ -25,6 +25,8 @@
   "L_d": 30,
   "staff_velocity": 0.58,
   "drone_velocity": 0.83,
+  "M_t": 1400,
+  "M_d": 5,
   "num_staff": 1,
   "num_drone": 1,
   "use_ejection": true,
@@ -36,8 +38,8 @@
   "time_limit": 36000,
   "model_params": {},
   "Optimal": 9.831135248269025,
-  "Solve_Time": 0.12659454345703125,
-  "num_constraint": 707,
+  "Solve_Time": 0.1115117073059082,
+  "num_constraint": 815,
   "Number of variables": 641,
   "status": "OPTIMAL"
 }

@@ -170,7 +170,7 @@ class Problem:
             data = file.read()
 
         customers_count = int(re.search(r"Customers (\d+)", data).group(1))  # type: ignore
-        trucks_count = int(re.search(r"number_staff (\d+)", data).group(1))  # type: ignore
+        trucks_count = int(re.search(r"number_truck (\d+)", data).group(1))  # type: ignore
         drones_count = int(re.search(r"number_drone (\d+)", data).group(1))  # type: ignore
 
         x = [0.0]
@@ -179,14 +179,14 @@ class Problem:
         dronable = [True]
         truck_service_time = [0.0]
         drone_service_time = [0.0]
-        for match in re.finditer(r"^([-\d\.]+)\s+([-\d\.]+)\s+([\d\.]+)\s+(0|1)\s+([\d\.]+)\s+([\d\.]+)$", data, re.MULTILINE):
-            _x, _y, demand, truck_only, _truck_service_time, _drone_service_time = match.groups()
+        for match in re.finditer(r"^([-\d\.]+)\s+([-\d\.]+)\s+([\d\.]+)$", data, re.MULTILINE):
+            _x, _y, demand = match.groups()
             x.append(float(_x))
             y.append(float(_y))
             demands.append(float(demand))
-            dronable.append(truck_only == "0")
-            truck_service_time.append(float(_truck_service_time))
-            drone_service_time.append(float(_drone_service_time))
+            dronable.append(True)
+            truck_service_time.append(0)
+            drone_service_time.append(0)
 
         return Problem(
             problem=problem,

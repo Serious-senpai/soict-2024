@@ -55,23 +55,21 @@ if __name__ == "__main__":
     print(namespace.tabu_size)
     print(int(namespace.verbose))
 
-    truck = TruckConfig.import_data()
+    truck = TruckConfig(
+        maximum_velocity=0.58,
+        capacity=1400,
+        coefficients=(1,),
+    )
     print(truck.maximum_velocity, truck.capacity)
     print(len(truck.coefficients), *truck.coefficients)
 
-    models: Tuple[Union[DroneLinearConfig, DroneNonlinearConfig, DroneEnduranceConfig], ...]
-    if namespace.config == "linear":
-        models = DroneLinearConfig.import_data()
-    elif namespace.config == "non-linear":
-        models = DroneNonlinearConfig.import_data()
-    else:
-        models = DroneEnduranceConfig.import_data()
-
-    for model in models:
-        if model.speed_type == namespace.speed_type and model.range_type == namespace.range_type:
-            break
-    else:
-        raise RuntimeError("Cannot find a satisfying model from list", models)
+    model = DroneEnduranceConfig(
+        capacity=5,
+        speed_type="low",
+        range_type="low",
+        fixed_time=30,
+        drone_speed=0.83,
+    )
 
     print(model.__class__.__name__)
     print(
