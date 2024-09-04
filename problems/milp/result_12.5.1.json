@@ -46,7 +46,7 @@
   "time_limit": 18000,
   "model_params": {},
   "Optimal": 14.031728417033321,
-  "Solve_Time": 5.447356700897217,
+  "Solve_Time": 4.169943809509277,
   "num_constraint": 3155,
   "Number of variables": 3017,
   "status": "OPTIMAL"
