@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing_extensions import Dict, Iterable
+from typing_extensions import Dict, Iterable, Optional
 
 from package import MILPResultJSON, ResultJSON, SolutionJSON, ROOT, csv_wrap
 
@@ -61,12 +61,20 @@ if __name__ == "__main__":
             "real",
             "user",
             "sys",
+            "Faster [%]",
         ]
         csv.write(",".join(headers) + "\n")
 
         for row, result in enumerate(result_reader(), start=2):
             milp_available = result["problem"] in milp
             milp_feasible = milp_available and milp[result["problem"]]["status"] != "INFEASIBLE"
+
+            milp_time: Optional[float] = None
+            if milp_feasible:
+                milp_time = milp[result["problem"]]["Solve_Time"]  # type: ignore
+            elif milp_available:
+                milp_time = 18000.0
+
             segments = [
                 csv_wrap(result["problem"]),
                 csv_wrap(f"=VALUE(LEFT(A{row}, SEARCH(\"\".\"\", A{row}) - 1))"),
@@ -80,7 +88,7 @@ if __name__ == "__main__":
                 str(result["solution"]["cost"]),
                 str(milp[result["problem"]]["Optimal"]) if milp_feasible else "",  # type: ignore
                 csv_wrap(f"=ROUND(100 * (K{row} - J{row}) / K{row}, 2)") if milp_feasible else "",
-                str(milp[result["problem"]]["Solve_Time"]) if milp_feasible else "",  # type: ignore
+                str(milp_time) if milp_time is not None else "",
                 str(milp[result["problem"]]["status"]) if milp_available else "",
                 str(result["solution"]["capacity_violation"]),
                 str(result["solution"]["drone_energy_violation"]),
@@ -94,5 +102,6 @@ if __name__ == "__main__":
                 str(result["real"]),
                 str(result["user"]),
                 str(result["sys"]),
+                csv_wrap(f"=ROUND(100 * (M{row} - Y{row}) / M{row}, 2)") if milp_time is not None else "",
             ]
             csv.write(",".join(segments) + "\n")
