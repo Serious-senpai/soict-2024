@@ -58,10 +58,10 @@
   "solver": "CPLEX",
   "solver_log": false,
   "num_worker": -1,
-  "time_limit": 18000,
+  "time_limit": 36000,
   "model_params": {},
   "Optimal": 24.333657290389652,
-  "Solve_Time": 18062.32196331024,
+  "Solve_Time": 36208.23868608475,
   "num_constraint": 29405,
   "Number of variables": 28961,
   "status": "FEASIBLE"
