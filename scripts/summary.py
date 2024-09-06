@@ -73,7 +73,7 @@ if __name__ == "__main__":
             if milp_feasible:
                 milp_time = milp[result["problem"]]["Solve_Time"]  # type: ignore
             elif milp_available:
-                milp_time = 18000.0
+                milp_time = 36000.0  # 10 hours without any feasible solutions
 
             segments = [
                 csv_wrap(result["problem"]),
