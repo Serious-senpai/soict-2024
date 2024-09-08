@@ -2,6 +2,7 @@
 
 #include "bitvector.hpp"
 #include "held_karp.hpp"
+#include "fp_specifier.hpp"
 #include "initial.hpp"
 #include "logger.hpp"
 #include "parent.hpp"
@@ -495,8 +496,8 @@ namespace d2d
 
     std::shared_ptr<Solution> Solution::initial(Logger<Solution> &logger)
     {
-        auto r1 = initial_1<Solution>();
-        auto r2 = initial_2<Solution>();
+        auto r1 = initial_impl<Solution, 1>();
+        auto r2 = initial_impl<Solution, 2>();
 
         short option = 0;
         if (r1->feasible && !r2->feasible)
@@ -528,6 +529,8 @@ namespace d2d
             logger.initialization_label = "initial_2";
             break;
         }
+
+        std::cerr << "\e[31mInitialization label = \"" << logger.initialization_label << "\"\e[0m" << std::endl;
 
         return option == 1 ? r1 : r2;
     }
@@ -562,13 +565,12 @@ namespace d2d
         {
             if (problem->verbose)
             {
-                std::string format_string = "\rIteration #%lu(";
-                format_string += current->cost() > 999999.0 ? "%.2e" : "%.2lf";
-                format_string += "/";
-                format_string += result->cost() > 999999.0 ? "%.2e" : "%.2lf";
-                format_string += ") ";
-
-                auto prefix = utils::format(format_string, iteration + 1, current->cost(), result->cost());
+                std::string format_string = utils::format(
+                    "Iteration #%lu(%s/%s)",
+                    iteration + 1,
+                    utils::fp_format_specifier(current->cost()),
+                    utils::fp_format_specifier(result->cost()));
+                auto prefix = utils::format(format_string, current->cost(), result->cost());
                 std::cerr << prefix;
 
                 try
@@ -584,7 +586,7 @@ namespace d2d
                     // ignore
                 }
 
-                std::cerr << std::flush;
+                std::cerr << '\r' << std::flush;
             }
 
             logger.iterations = iteration + 1;
