@@ -21,6 +21,8 @@ namespace d2d
     {
     private:
         static double A1, A2, A3, A4, B;
+        static std::vector<std::vector<std::size_t>> _edge_frequency;
+        static std::size_t _total_frequency, _extra_penalty;
 
         static const std::vector<std::shared_ptr<Neighborhood<Solution, true>>> neighborhoods;
 
@@ -203,6 +205,46 @@ namespace d2d
             result += A3 * working_time_violation;
             result += A4 * fixed_time_violation;
 
+            if (_extra_penalty > 0)
+            {
+                auto problem = Problem::get_instance();
+                std::vector<std::vector<bool>> exists(problem->customers.size(), std::vector<bool>(problem->customers.size()));
+                for (auto &routes : truck_routes)
+                {
+                    for (auto &route : routes)
+                    {
+                        const auto &customers = route.customers();
+                        for (std::size_t i = 0; i + 1 < customers.size(); i++)
+                        {
+                            exists[customers[i]][customers[i + 1]] = true;
+                        }
+                    }
+                }
+                for (auto &routes : drone_routes)
+                {
+                    for (auto &route : routes)
+                    {
+                        const auto &customers = route.customers();
+                        for (std::size_t i = 0; i + 1 < customers.size(); i++)
+                        {
+                            exists[customers[i]][customers[i + 1]] = true;
+                        }
+                    }
+                }
+
+                double extra = 0;
+                for (std::size_t i = 0; i < problem->customers.size(); i++)
+                {
+                    for (std::size_t j = 0; j < problem->customers.size(); j++)
+                    {
+                        double p = static_cast<double>(_edge_frequency[i][j]) / static_cast<double>(_total_frequency);
+                        extra += exists[i][j] ? p : 1 - p;
+                    }
+                }
+
+                result += problem->average_cost * extra;
+            }
+
             return result;
         }
 
@@ -343,6 +385,10 @@ namespace d2d
     double Solution::A3 = 1;
     double Solution::A4 = 1;
     double Solution::B = 1.5;
+
+    std::vector<std::vector<std::size_t>> Solution::_edge_frequency;
+    std::size_t Solution::_total_frequency = 0;
+    std::size_t Solution::_extra_penalty = 0;
 
     const std::vector<std::shared_ptr<Neighborhood<Solution, true>>> Solution::neighborhoods = {
         std::make_shared<MoveXY<Solution, 1, 0>>(),
@@ -530,6 +576,10 @@ namespace d2d
     std::shared_ptr<Solution> Solution::tabu_search(Logger<Solution> &logger)
     {
         auto problem = Problem::get_instance();
+
+        _edge_frequency.clear();
+        _edge_frequency.resize(problem->customers.size(), std::vector<std::size_t>(problem->customers.size()));
+
         std::vector<std::shared_ptr<Solution>> elite = {initial_impl<d2d::Solution, 1>(), initial_impl<d2d::Solution, 2>()};
         auto current = elite[0]->cost() < elite[1]->cost() ? elite[0] : elite[1], result = current;
 
@@ -551,10 +601,38 @@ namespace d2d
                 elite.erase(elite.begin());
             }
             elite.push_back(result);
+            for (auto &routes : result->truck_routes)
+            {
+                for (auto &route : routes)
+                {
+                    const auto &customers = route.customers();
+                    for (std::size_t i = 0; i + 1 < customers.size(); i++)
+                    {
+                        _edge_frequency[customers[i]][customers[i + 1]]++;
+                    }
+                }
+            }
+            for (auto &routes : result->drone_routes)
+            {
+                for (auto &route : routes)
+                {
+                    const auto &customers = route.customers();
+                    for (std::size_t i = 0; i + 1 < customers.size(); i++)
+                    {
+                        _edge_frequency[customers[i]][customers[i + 1]]++;
+                    }
+                }
+            }
+            _total_frequency++;
         };
 
         for (std::size_t iteration = 0;; iteration++)
         {
+            if (_extra_penalty > 0)
+            {
+                _extra_penalty--;
+            }
+
             if (problem->verbose)
             {
                 std::string format_string = utils::format(
@@ -585,7 +663,7 @@ namespace d2d
 
             const auto aspiration_criteria = [&logger, &result, &insert_elite, &iteration](std::shared_ptr<Solution> ptr)
             {
-                if (ptr->feasible && ptr->cost() < result->cost())
+                if (ptr->feasible && ptr->cost() < result->cost() && (!result->feasible || ptr->travel_cost < result->travel_cost))
                 {
                     result = ptr;
                     logger.last_improved = iteration;
@@ -617,6 +695,7 @@ namespace d2d
                 auto iter = utils::random_element(elite);
                 current = *iter;
                 elite.erase(iter);
+                _extra_penalty = 10;
             }
 
             logger.log(
@@ -662,6 +741,8 @@ namespace d2d
         {
             std::cerr << std::endl;
         }
+
+        _extra_penalty = 0;
 
         auto post_opt = result->post_optimization(logger);
         return post_opt;

@@ -47,6 +47,7 @@ namespace d2d
             const double truck_unit_cost,
             const double drone_unit_cost,
             const double &total_demand,
+            const double &average_cost,
             const TruckConfig *const truck,
             const _BaseDroneConfig *const drone,
             const DroneLinearConfig *const linear,
@@ -67,6 +68,7 @@ namespace d2d
               truck_unit_cost(truck_unit_cost),
               drone_unit_cost(drone_unit_cost),
               total_demand(total_demand),
+              average_cost(average_cost),
               truck(truck),
               drone(drone),
               linear(linear),
@@ -94,6 +96,7 @@ namespace d2d
         const double drone_unit_cost;
 
         const double total_demand;
+        const double average_cost;
         const TruckConfig *const truck;
         const _BaseDroneConfig *const drone;
         const DroneLinearConfig *const linear;
@@ -274,6 +277,17 @@ namespace d2d
             double hamming_distance_factor;
             std::cin >> max_elite_set_size >> reset_after >> hamming_distance_factor;
 
+            double average_cost = 0;
+            for (std::size_t i = 0; i < customers.size(); i++)
+            {
+                for (std::size_t j = i + 1; j < customers.size(); j++)
+                {
+                    average_cost += (truck_unit_cost * man_distances[i][j] + drone_unit_cost * euc_distances[i][j]) / 2;
+                }
+            }
+
+            average_cost /= customers.size() * (customers.size() - 1) / 2;
+
             _instance = new Problem(
                 tabu_size,
                 verbose,
@@ -290,6 +304,7 @@ namespace d2d
                     customers.begin(), customers.end(), 0.0,
                     [](const double &sum, const Customer &customer)
                     { return sum + customer.demand; }),
+                average_cost,
                 truck,
                 drone,
                 dynamic_cast<DroneLinearConfig *>(drone),
