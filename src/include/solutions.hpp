@@ -335,7 +335,6 @@ namespace d2d
             return !(*this == other);
         }
 
-        static std::shared_ptr<Solution> initial(Logger<Solution> &logger);
         static std::shared_ptr<Solution> tabu_search(Logger<Solution> &logger);
     };
 
@@ -528,57 +527,16 @@ namespace d2d
         return {A1, A2, A3, A4};
     }
 
-    std::shared_ptr<Solution> Solution::initial(Logger<Solution> &logger)
-    {
-        auto r1 = initial_impl<Solution, 1>();
-        auto r2 = initial_impl<Solution, 2>();
-
-        short option = 0;
-        if (r1->feasible && !r2->feasible)
-        {
-            option = 1;
-        }
-        else if (!r1->feasible && r2->feasible)
-        {
-            option = 2;
-        }
-        else if (r1->cost() < r2->cost())
-        {
-            option = 1;
-        }
-        else if (r1->cost() > r2->cost())
-        {
-            option = 2;
-        }
-
-        switch (option)
-        {
-        case 0:
-            logger.initialization_label = "initial_12";
-            break;
-        case 1:
-            logger.initialization_label = "initial_1";
-            break;
-        case 2:
-            logger.initialization_label = "initial_2";
-            break;
-        }
-
-        std::cerr << "\e[31mInitialization label = \"" << logger.initialization_label << "\"\e[0m" << std::endl;
-
-        return option == 1 ? r1 : r2;
-    }
-
     std::shared_ptr<Solution> Solution::tabu_search(Logger<Solution> &logger)
     {
         auto problem = Problem::get_instance();
-        auto current = initial(logger), result = current;
+        std::vector<std::shared_ptr<Solution>> elite = {initial_impl<d2d::Solution, 1>(), initial_impl<d2d::Solution, 2>()};
+        auto current = elite[0]->cost() < elite[1]->cost() ? elite[0] : elite[1], result = current;
 
         logger.last_improved = 0;
         logger.iterations = 0;
 
         std::size_t neighborhood = 0;
-        std::vector<std::shared_ptr<Solution>> elite = {result};
         auto insert_elite = [&problem, &elite, &result]()
         {
             std::sort(
