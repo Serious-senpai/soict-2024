@@ -582,7 +582,7 @@ namespace d2d
         _edge_frequency.resize(problem->customers.size(), std::vector<std::size_t>(problem->customers.size()));
 
         std::vector<std::shared_ptr<Solution>> elite = {initial_impl<d2d::Solution, 1>(), initial_impl<d2d::Solution, 2>()};
-        auto current = elite[0]->cost() < elite[1]->cost() ? elite[0] : elite[1], result = current;
+        auto current = *utils::random_element(elite), result = current;
 
         logger.last_improved = 0;
         logger.iterations = 0;
