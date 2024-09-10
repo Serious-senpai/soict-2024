@@ -317,6 +317,56 @@ namespace d2d
                 }
             }
 
+            std::vector<std::vector<TruckRoute>> new_truck_routes(result->truck_routes);
+            std::vector<std::vector<DroneRoute>> new_drone_routes(result->drone_routes);
+
+            auto optimize_route = [&problem]<typename RT, std::enable_if_t<is_route_v<RT>, bool> = true>(std::vector<std::vector<RT>> &vehicle_routes)
+            {
+                auto distance = [&problem](const std::size_t &i, const std::size_t &j)
+                {
+                    if constexpr (std::is_same_v<RT, TruckRoute>)
+                    {
+                        return problem->man_distances[i][j];
+                    }
+                    else
+                    {
+                        return problem->euc_distances[i][j];
+                    }
+                };
+
+                for (auto &routes : vehicle_routes)
+                {
+                    for (auto &route : routes)
+                    {
+                        std::vector<std::size_t> customers(route.customers());
+                        customers.push_back(0);
+
+                        std::vector<std::size_t> ordered(customers.size());
+                        std::iota(ordered.begin(), ordered.end(), 0);
+                        ordered = customers.size() < 23 ? utils::held_karp_algorithm(customers.size(), distance).second
+                                                        : utils::two_opt_heuristic(customers.size(), distance, ordered).second;
+
+                        std::vector<std::size_t> new_customers(customers.size());
+                        std::transform(
+                            ordered.begin(), ordered.end(), new_customers.begin(),
+                            [&customers](const std::size_t &i)
+                            { return customers[i]; });
+
+                        std::rotate(
+                            new_customers.begin(),
+                            std::find(new_customers.begin(), new_customers.end(), 0),
+                            new_customers.end());
+
+                        new_customers.push_back(0);
+                        route = RT(new_customers);
+                    }
+                }
+            };
+
+            optimize_route(new_truck_routes);
+            optimize_route(new_drone_routes);
+            result = std::make_shared<Solution>(new_truck_routes, new_drone_routes, std::make_shared<ParentInfo<Solution>>(result, "TSP optimization"));
+
             if (problem->verbose)
             {
                 std::cerr << std::endl;
@@ -532,7 +582,7 @@ namespace d2d
     {
         auto problem = Problem::get_instance();
         std::vector<std::shared_ptr<Solution>> elite = {initial_impl<d2d::Solution, 1>(), initial_impl<d2d::Solution, 2>()};
-        auto current = *utils::random_element(elite), result = current;
+        auto current = elite[0]->cost() < elite[1]->cost() ? elite[0] : elite[1], result = current;
 
         logger.last_improved = 0;
         logger.iterations = 0;
