@@ -129,4 +129,58 @@ namespace utils
 
         return std::make_pair(d, path);
     }
+
+    std::pair<double, std::vector<std::size_t>> two_opt_heuristic(
+        const std::size_t &n,
+        const std::function<double(const std::size_t &, const std::size_t &)> &distance,
+        const std::optional<std::vector<std::size_t>> initial = std::nullopt)
+    {
+        double dist = 0;
+        std::vector<std::size_t> path;
+        if (initial.has_value())
+        {
+            path = *initial;
+            for (std::size_t i = 0; i < n; i++)
+            {
+                dist += distance(path[i], path[(i + 1) % n]);
+            }
+        }
+        else
+        {
+            auto p = nearest_heuristic(n, distance);
+            dist = p.first;
+            path = p.second;
+        }
+
+        bool improved = true;
+        while (improved)
+        {
+            improved = false;
+            for (std::size_t i = 1; i < n; i++) // Do not swap the base vertex
+            {
+                for (std::size_t j = i + 1; j < n; j++)
+                {
+                    std::vector<std::size_t> new_path(path);
+
+                    // Reverse segment [i, j]
+                    std::reverse(new_path.begin() + i, new_path.begin() + (j + 1));
+
+                    double new_distance = dist;
+                    dist -= distance(path[i], path[(i + n - 1) % n]);
+                    dist -= distance(path[j], path[(j + 1) % n]);
+                    dist += distance(path[i], path[(j + 1) % n]);
+                    dist += distance(path[j], path[(i + n - 1) % n]);
+
+                    if (dist < new_distance)
+                    {
+                        dist = new_distance;
+                        path = new_path;
+                        improved = true;
+                    }
+                }
+            }
+        }
+
+        return std::make_pair(dist, path);
+    }
 }
