@@ -704,7 +704,7 @@ namespace d2d
             _extra_penalty.update(result->drone_routes);
         };
 
-        for (std::size_t iteration = 0;; iteration++)
+        for (std::size_t iteration = 0; iteration < 10000; iteration++)
         {
             _extra_penalty.iteration_update();
             if (problem->verbose)
@@ -757,20 +757,6 @@ namespace d2d
             else if (neighbor != nullptr)
             {
                 current = neighbor;
-            }
-
-            // Pop from elite set
-            if (iteration != logger.last_improved && (iteration - logger.last_improved) % problem->reset_after == 0)
-            {
-                if (elite.empty())
-                {
-                    break;
-                }
-
-                auto iter = utils::random_element(elite);
-                current = *iter;
-                elite.erase(iter);
-                _extra_penalty.start_diversification();
             }
 
 #ifdef LOGGING
