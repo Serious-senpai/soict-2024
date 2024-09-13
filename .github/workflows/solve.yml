@@ -114,7 +114,7 @@ jobs:
           for i in $(seq $begin $end)
           do
             echo "RUN #$i"
-            python scripts/in.py ${{ matrix.problem }} > input.txt
+            python scripts/in.py ${{ matrix.problem }} --diversification-factor 0 > input.txt
             report_error
 
             cat input.txt | build/main.exe > input2.txt
