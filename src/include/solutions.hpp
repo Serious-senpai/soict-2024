@@ -847,6 +847,7 @@ namespace d2d
             extra_penalty.set_base(current);
             auto neighbor = _neighborhoods[neighborhood]->move(current, aspiration_criteria); // result is updated by aspiration_criteria
             auto old_current = current;
+            auto old_current_cost = current->cost();
             if (logger.last_improved == iteration)
             {
                 current = result;
@@ -911,7 +912,14 @@ namespace d2d
             violation_update(A3, current->waiting_time_violation);
             violation_update(A4, current->fixed_time_violation);
 
-            neighborhood = utils::random<std::size_t>(0, _neighborhoods.size() - 1);
+            if (current->cost() < old_current_cost)
+            {
+                neighborhood = 0;
+            }
+            else
+            {
+                neighborhood = (neighborhood + 1) % _neighborhoods.size();
+            }
         }
 
         if (problem->verbose)
