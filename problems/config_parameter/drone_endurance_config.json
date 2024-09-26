@@ -2,7 +2,7 @@
     "1": {
         "speed_type": "low",
         "range": "low",
-        "capacity [kg]": 1000000000,
+        "capacity [kg]": 5,
         "FixedTime (s)": 1800,
         "FixedDistance (m)": 1000000000,
         "Drone_speed (m/s)": 22.2626
