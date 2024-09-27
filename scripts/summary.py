@@ -112,6 +112,6 @@ if __name__ == "__main__":
                 str(result["last_improved"]),
                 str(result["elapsed"]),
                 csv_wrap(result["url"]) if result["url"] is not None else "",
-                csv_wrap(f"=ROUND(100 * (M{row} - X{row}) / M{row}, 2)") if milp_time is not None else "",
+                csv_wrap(f"=ROUND(100 * (S{row} - AD{row}) / S{row}, 2)") if milp_time is not None else "",
             ]
             csv.write(",".join(segments) + "\n")
